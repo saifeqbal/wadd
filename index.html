@@ -279,4 +279,604 @@
 
                         <!-- Submit Button -->
                         <div class="pt-2 flex justify-end">
-                            <button type="submit" id="submit-btn" class="w-full sm:w-auto px-8 py-3.5 bg-medical-600 hover:bg-medical-700 text-white font-semibold rounded-
+                            <button type="submit" id="submit-btn" class="w-full sm:w-auto px-8 py-3.5 bg-medical-600 hover:bg-medical-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-3">
+                                <span>Send Prescription to Server</span>
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- TAB CONTENT 2: DASHBOARD GALLERY -->
+            <div id="tab-content-view" class="mt-8 hidden">
+                
+                <!-- Filter & Search Controls -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+                    <div class="relative w-full md:w-96">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+                        <input type="text" id="search-input" oninput="renderPrescriptions()" placeholder="Search by patient, doctor, or ID..." class="w-full pl-10 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-medical-500 focus:border-medical-500 outline-none">
+                    </div>
+                    
+                    <div class="flex items-center gap-3 w-full md:w-auto justify-end">
+                        <label class="text-xs font-semibold text-slate-600 text-nowrap">Filter Status:</label>
+                        <select id="status-filter" onchange="renderPrescriptions()" class="px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-medical-500 outline-none">
+                            <option value="ALL">All Statuses</option>
+                            <option value="Received">Received</option>
+                            <option value="In Pharmacy Review">In Pharmacy Review</option>
+                            <option value="Dispatched">Dispatched</option>
+                        </select>
+                        <button onclick="resetDataToDefault()" title="Reset to initial mock data" class="px-3 py-2 text-xs border border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 font-medium">
+                            <i class="fa-solid fa-rotate-left mr-1"></i> Reset Mock Data
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Gallery Grid -->
+                <div id="prescription-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Dynamic prescription cards inserted here via JS -->
+                </div>
+
+                <!-- Empty State Container -->
+                <div id="empty-state" class="hidden text-center py-16 bg-white rounded-2xl border border-slate-200 p-8">
+                    <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto text-2xl mb-4">
+                        <i class="fa-solid fa-folder-open"></i>
+                    </div>
+                    <h3 class="text-slate-800 font-bold text-lg">No Prescriptions Found</h3>
+                    <p class="text-slate-500 text-sm max-w-sm mx-auto mt-1">There are no records matching your search query or no uploads have been submitted yet.</p>
+                    <button onclick="setActiveTab('upload')" class="mt-5 px-5 py-2.5 bg-medical-600 text-white rounded-lg text-sm font-medium hover:bg-medical-700 transition">
+                        Submit a New Prescription
+                    </button>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Modal Detail View -->
+    <div id="prescription-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in duration-200">
+            <!-- Modal Header -->
+            <div class="p-4 sm:p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <div>
+                    <span id="modal-rx-id" class="text-xs font-mono font-bold text-medical-600 uppercase">RX-0000</span>
+                    <h3 id="modal-patient-name" class="text-lg font-bold text-slate-900">Patient Details</h3>
+                </div>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white hover:bg-slate-200 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-700 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-6 overflow-y-auto space-y-6 custom-scrollbar">
+                <!-- Info Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+                    <div>
+                        <span class="text-slate-400 block font-medium">Age / Gender</span>
+                        <span id="modal-patient-demographics" class="font-semibold text-slate-800 text-sm">--</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block font-medium">Contact Phone</span>
+                        <span id="modal-patient-phone" class="font-semibold text-slate-800 text-sm">--</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block font-medium">Prescribing Doctor</span>
+                        <span id="modal-doctor-name" class="font-semibold text-slate-800 text-sm">--</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block font-medium">Submission Time</span>
+                        <span id="modal-timestamp" class="font-semibold text-slate-800 text-sm">--</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block font-medium">Current Status</span>
+                        <span id="modal-status-badge" class="inline-block mt-0.5">--</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block font-medium">Email</span>
+                        <span id="modal-patient-email" class="font-semibold text-slate-800 text-sm truncate block">--</span>
+                    </div>
+                </div>
+
+                <!-- Patient Notes -->
+                <div id="modal-notes-container">
+                    <h4 class="text-xs font-bold uppercase text-slate-500 mb-1">Patient Instructions / Notes</h4>
+                    <p id="modal-notes" class="text-sm bg-amber-50/60 text-amber-900 p-3 rounded-lg border border-amber-200/60 italic">None provided.</p>
+                </div>
+
+                <!-- Document Image Viewer -->
+                <div>
+                    <h4 class="text-xs font-bold uppercase text-slate-500 mb-2">Uploaded Prescription Document</h4>
+                    <div id="modal-file-display" class="bg-slate-900 rounded-xl overflow-hidden min-h-[250px] flex items-center justify-center p-2 relative">
+                        <img id="modal-img-preview" src="" alt="Prescription Document" class="max-h-[400px] w-auto object-contain rounded">
+                        <div id="modal-pdf-fallback" class="hidden text-center py-12 text-white">
+                            <i class="fa-solid fa-file-pdf text-6xl text-red-500 mb-3"></i>
+                            <p class="font-semibold text-sm">PDF Document Uploaded</p>
+                            <p class="text-xs text-slate-400 mt-1">Binary content stored safely on server</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-between items-center">
+                <button onclick="closeModal()" class="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition">
+                    Close
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="showToast('Downloading document copy...', 'info')" class="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-download"></i> Download
+                    </button>
+                    <button onclick="showToast('Prescription order marked for processing!', 'success'); closeModal();" class="px-4 py-2 bg-tealmed-500 hover:bg-tealmed-600 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i> Process Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-8 text-xs border-t border-slate-800 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-md bg-medical-600 flex items-center justify-center text-white text-xs">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <span class="text-slate-200 font-semibold">CarePulse General Hospital &copy; 2026</span>
+            </div>
+            <p>Confidential & Secure Clinical Server API Interactivity Simulation</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Default Sample Prescriptions Mock Data
+        const SAMPLE_PRESCRIPTIONS = [
+            {
+                id: "RX-8492",
+                patientName: "Eleanor Vance",
+                patientAge: 45,
+                patientGender: "Female",
+                contactNumber: "+1 (555) 234-5678",
+                patientEmail: "eleanor.vance@example.com",
+                doctorName: "Dr. Robert Marcus",
+                additionalNotes: "Please supply 30 days refill of Amoxicillin 500mg as written.",
+                timestamp: new Date(Date.now() - 3600000 * 2).toLocaleString(),
+                status: "In Pharmacy Review",
+                fileUrl: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&q=80",
+                fileType: "image/jpeg"
+            },
+            {
+                id: "RX-9104",
+                patientName: "Michael Chang",
+                patientAge: 52,
+                patientGender: "Male",
+                contactNumber: "+1 (555) 987-6543",
+                patientEmail: "mchang@example.com",
+                doctorName: "Dr. Sarah Jenkins",
+                additionalNotes: "Patient requested home delivery by 5 PM.",
+                timestamp: new Date(Date.now() - 3600000 * 18).toLocaleString(),
+                status: "Dispatched",
+                fileUrl: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=600&q=80",
+                fileType: "image/jpeg"
+            },
+            {
+                id: "RX-3319",
+                patientName: "Sophia Martinez",
+                patientAge: 29,
+                patientGender: "Female",
+                contactNumber: "+1 (555) 456-7890",
+                patientEmail: "sophia.m@example.com",
+                doctorName: "Dr. Amanda Hayes",
+                additionalNotes: "Urgent prescription order.",
+                timestamp: new Date(Date.now() - 3600000 * 40).toLocaleString(),
+                status: "Received",
+                fileUrl: "pdf_mock",
+                fileType: "application/pdf"
+            }
+        ];
+
+        // State Management
+        let selectedFileBase64 = null;
+        let selectedFileType = null;
+        let selectedFileName = "";
+        let selectedFileSize = "";
+        let prescriptions = [];
+
+        // Initialize Application
+        window.addEventListener('DOMContentLoaded', () => {
+            loadPrescriptionsFromStorage();
+            renderPrescriptions();
+        });
+
+        // Load data from LocalStorage or initialize default
+        function loadPrescriptionsFromStorage() {
+            const stored = localStorage.getItem('carepulse_prescriptions');
+            if (stored) {
+                try {
+                    prescriptions = JSON.parse(stored);
+                } catch (e) {
+                    prescriptions = [...SAMPLE_PRESCRIPTIONS];
+                }
+            } else {
+                prescriptions = [...SAMPLE_PRESCRIPTIONS];
+                saveToStorage();
+            }
+            updateBadgeCount();
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('carepulse_prescriptions', JSON.stringify(prescriptions));
+            updateBadgeCount();
+        }
+
+        function resetDataToDefault() {
+            prescriptions = [...SAMPLE_PRESCRIPTIONS];
+            saveToStorage();
+            renderPrescriptions();
+            showToast("Server storage reset to default mock records.", "info");
+        }
+
+        function updateBadgeCount() {
+            document.getElementById('prescription-count-badge').innerText = prescriptions.length;
+        }
+
+        // Tab Switch Logic
+        function setActiveTab(tab) {
+            const btnUpload = document.getElementById('tab-btn-upload');
+            const btnView = document.getElementById('tab-btn-view');
+            const contentUpload = document.getElementById('tab-content-upload');
+            const contentView = document.getElementById('tab-content-view');
+
+            if (tab === 'upload') {
+                btnUpload.className = "flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-xs bg-white text-medical-700";
+                btnView.className = "flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-slate-900";
+                contentUpload.classList.remove('hidden');
+                contentView.classList.add('hidden');
+            } else {
+                btnView.className = "flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-xs bg-white text-medical-700";
+                btnUpload.className = "flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-slate-900";
+                contentView.classList.remove('hidden');
+                contentUpload.classList.add('hidden');
+                renderPrescriptions();
+            }
+        }
+
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // File Drag & Drop Handling
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('drop-zone').classList.add('border-medical-500', 'bg-medical-50');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('drop-zone').classList.remove('border-medical-500', 'bg-medical-50');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('drop-zone').classList.remove('border-medical-500', 'bg-medical-50');
+            const files = e.dataTransfer.files;
+            if (files && files.length > 0) {
+                processUploadedFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                processUploadedFile(files[0]);
+            }
+        }
+
+        function processUploadedFile(file) {
+            if (file.size > 5 * 1024 * 1024) {
+                showToast("File size exceeds 5MB limit. Please upload a smaller file.", "error");
+                return;
+            }
+
+            selectedFileType = file.type;
+            selectedFileName = file.name;
+            selectedFileSize = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedFileBase64 = e.target.result;
+                displayFilePreview(file.type, selectedFileBase64);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function displayFilePreview(type, dataUrl) {
+            const prompt = document.getElementById('drop-zone-prompt');
+            const previewContainer = document.getElementById('file-preview-container');
+            const imgPreview = document.getElementById('file-preview-img');
+            const pdfIcon = document.getElementById('pdf-icon-preview');
+
+            prompt.classList.add('hidden');
+            previewContainer.classList.remove('hidden');
+            previewContainer.classList.add('flex');
+
+            document.getElementById('file-name').innerText = selectedFileName;
+            document.getElementById('file-size').innerText = selectedFileSize;
+
+            if (type.includes('image')) {
+                imgPreview.src = dataUrl;
+                imgPreview.classList.remove('hidden');
+                pdfIcon.classList.add('hidden');
+            } else {
+                imgPreview.classList.add('hidden');
+                pdfIcon.classList.remove('hidden');
+                pdfIcon.classList.add('flex');
+            }
+        }
+
+        function removeSelectedFile(e) {
+            if(e) e.stopPropagation();
+            selectedFileBase64 = null;
+            selectedFileType = null;
+            selectedFileName = "";
+            selectedFileSize = "";
+            
+            document.getElementById('file-input').value = "";
+            document.getElementById('drop-zone-prompt').classList.remove('hidden');
+            document.getElementById('file-preview-container').classList.add('hidden');
+        }
+
+        // Mock Server Asynchronous Call
+        function mockFetchServer(payload) {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    // Simulated response (95% success rate for realism)
+                    const isSuccess = Math.random() < 0.98;
+                    if (isSuccess) {
+                        const newRecord = {
+                            id: "RX-" + Math.floor(1000 + Math.random() * 9000),
+                            ...payload,
+                            timestamp: new Date().toLocaleString(),
+                            status: "Received"
+                        };
+                        resolve({ status: 200, message: "Prescription stored successfully", data: newRecord });
+                    } else {
+                        reject({ status: 500, message: "Server database connection timeout. Please try again." });
+                    }
+                }, 1500); // 1.5s server latency simulation
+            });
+        }
+
+        // Form Submit Handler
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+
+            if (!selectedFileBase64) {
+                showToast("Please upload a prescription image or PDF document.", "error");
+                return;
+            }
+
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Processing & Encrypting...`;
+
+            const payload = {
+                patientName: document.getElementById('patientName').value.trim(),
+                patientAge: document.getElementById('patientAge').value,
+                patientGender: document.getElementById('patientGender').value,
+                contactNumber: document.getElementById('contactNumber'').value,
+                contactNumber: document.getElementById('contactNumber').value.trim(),
+                patientEmail: document.getElementById('patientEmail').value.trim(),
+                doctorName: document.getElementById('doctorName').value.trim(),
+                additionalNotes: document.getElementById('additionalNotes').value.trim(),
+                fileUrl: selectedFileBase64,
+                fileType: selectedFileType
+            };
+
+            try {
+                const response = await mockFetchServer(payload);
+                
+                // Add returned record to state
+                prescriptions.unshift(response.data);
+                saveToStorage();
+
+                showToast("Prescription transmitted to CarePulse server!", "success");
+                
+                // Reset form
+                document.getElementById('prescription-form').reset();
+                removeSelectedFile();
+
+                // Switch to dashboard view
+                setTimeout(() => {
+                    setActiveTab('view');
+                }, 800);
+
+            } catch (error) {
+                showToast(error.message || "Failed to transmit prescription.", "error");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<span>Send Prescription to Server</span> <i class="fa-solid fa-paper-plane"></i>`;
+            }
+        }
+
+        // Render Dashboard Gallery
+        function renderPrescriptions() {
+            const grid = document.getElementById('prescription-grid');
+            const emptyState = document.getElementById('empty-state');
+            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+            const statusFilter = document.getElementById('status-filter').value;
+
+            const filtered = prescriptions.filter(item => {
+                const matchesSearch = item.patientName.toLowerCase().includes(searchQuery) ||
+                                      item.doctorName.toLowerCase().includes(searchQuery) ||
+                                      item.id.toLowerCase().includes(searchQuery);
+                const matchesStatus = statusFilter === 'ALL' || item.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+
+            grid.innerHTML = '';
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filtered.forEach(rx => {
+                const isPdf = rx.fileType === 'application/pdf' || rx.fileUrl === 'pdf_mock';
+                const statusBadge = getStatusBadgeHTML(rx.status);
+
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl border border-slate-200 shadow-xs hover:shadow-md transition-all overflow-hidden flex flex-col justify-between";
+                
+                card.innerHTML = `
+                    <div>
+                        <!-- Thumbnail Header -->
+                        <div class="h-44 bg-slate-900 relative flex items-center justify-center overflow-hidden border-b border-slate-100 group">
+                            ${isPdf 
+                                ? `<div class="text-center text-white"><i class="fa-solid fa-file-pdf text-5xl text-red-500 mb-1"></i><p class="text-xs font-semibold">PDF Document</p></div>`
+                                : `<img src="${rx.fileUrl}" alt="Prescription" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">`
+                            }
+                            <div class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-mono font-bold px-2.5 py-1 rounded-md border border-white/10">
+                                ${rx.id}
+                            </div>
+                            <div class="absolute top-3 right-3">
+                                ${statusBadge}
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="p-5 space-y-3">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-slate-900 text-base leading-tight">${rx.patientName}</h4>
+                                    <p class="text-xs text-slate-500">${rx.patientGender}, ${rx.patientAge} yrs • ${rx.contactNumber}</p>
+                                </div>
+                            </div>
+
+                            <div class="text-xs text-slate-600 space-y-1.5 pt-1 border-t border-slate-100">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-user-doctor text-medical-600"></i>
+                                    <span>Prescriber: <strong>${rx.doctorName}</strong></span>
+                                </div>
+                                <div class="flex items-center gap-2 text-slate-400">
+                                    <i class="fa-solid fa-clock"></i>
+                                    <span>${rx.timestamp}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Footer Button -->
+                    <div class="p-4 pt-0">
+                        <button onclick="openModal('${rx.id}')" class="w-full py-2 bg-slate-100 hover:bg-medical-50 text-slate-700 hover:text-medical-700 text-xs font-semibold rounded-lg transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-eye"></i> View Full Prescription Details
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function getStatusBadgeHTML(status) {
+            if (status === 'Dispatched') {
+                return `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Dispatched</span>`;
+            } else if (status === 'In Pharmacy Review') {
+                return `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Reviewing</span>`;
+            } else {
+                return `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200">Received</span>`;
+            }
+        }
+
+        // Modal Functionality
+        function openModal(rxId) {
+            const rx = prescriptions.find(item => item.id === rxId);
+            if (!rx) return;
+
+            document.getElementById('modal-rx-id').innerText = rx.id;
+            document.getElementById('modal-patient-name').innerText = rx.patientName;
+            document.getElementById('modal-patient-demographics').innerText = `${rx.patientAge} Yrs / ${rx.patientGender}`;
+            document.getElementById('modal-patient-phone').innerText = rx.contactNumber;
+            document.getElementById('modal-patient-email').innerText = rx.patientEmail;
+            document.getElementById('modal-doctor-name').innerText = rx.doctorName;
+            document.getElementById('modal-timestamp').innerText = rx.timestamp;
+            document.getElementById('modal-status-badge').innerHTML = getStatusBadgeHTML(rx.status);
+            
+            const notesEl = document.getElementById('modal-notes');
+            if (rx.additionalNotes) {
+                notesEl.innerText = rx.additionalNotes;
+                notesEl.className = "text-sm bg-amber-50 text-amber-900 p-3 rounded-lg border border-amber-200/60";
+            } else {
+                notesEl.innerText = "No additional instructions provided.";
+                notesEl.className = "text-sm bg-slate-50 text-slate-400 p-3 rounded-lg border border-slate-200/60 italic";
+            }
+
+            const imgEl = document.getElementById('modal-img-preview');
+            const pdfFallback = document.getElementById('modal-pdf-fallback');
+
+            if (rx.fileType === 'application/pdf' || rx.fileUrl === 'pdf_mock') {
+                imgEl.classList.add('hidden');
+                pdfFallback.classList.remove('hidden');
+            } else {
+                pdfFallback.classList.add('hidden');
+                imgEl.src = rx.fileUrl;
+                imgEl.classList.remove('hidden');
+            }
+
+            document.getElementById('prescription-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('prescription-modal').classList.add('hidden');
+        }
+
+        // Toast Notification System
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = "bg-slate-900 text-white";
+            let icon = "fa-circle-info text-sky-400";
+
+            if (type === 'success') {
+                bgClass = "bg-slate-900 text-white border-l-4 border-emerald-500";
+                icon = "fa-circle-check text-emerald-400";
+            } else if (type === 'error') {
+                bgClass = "bg-slate-900 text-white border-l-4 border-red-500";
+                icon = "fa-circle-exclamation text-red-400";
+            }
+
+            toast.className = `p-4 rounded-xl shadow-xl text-xs font-medium flex items-center justify-between gap-3 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto ${bgClass}`;
+            toast.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid ${icon} text-base"></i>
+                    <span>${message}</span>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+
+            // Animate In
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            // Auto Remove
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
